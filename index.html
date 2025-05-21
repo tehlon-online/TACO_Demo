@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tehlon.com</title>
+    <style>
+        body {
+            background-color: #da9617;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            width: 90%;
+            height: calc(100vh - 150px);
+            margin: 50px auto 0;
+            max-width: 1200px;
+        }
+
+        /* Chat container styling */
+        #chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            border: 2px solid black;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #chat-window {
+            flex-grow: 1;
+            background-color: #ffffff;
+            border-top: 1px solid black;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Form styling */
+        #chat-form {
+            display: flex;
+            border-top: 1px solid #000;
+            padding: 5px;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 5px;
+            font-family: "Courier New", Courier, monospace;
+            border: 1px solid #aaa;
+            outline: none;
+            resize: none;
+            height: 100px;
+            line-height: 1.5;
+        }
+
+        #chat-form button {
+            padding: 5px 10px;
+            margin-left: 5px;
+            background-color: #2e2e2e;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Message styling */
+        .chat-message {
+            margin-bottom: 8px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .user-you {
+            color: #007BFF;
+        }
+
+        .user-taco {
+            color: #da9617;
+        }
+        
+        /* New style for ENFUEGO character */
+        .user-enfuego {
+            color: #E25822;
+        }
+
+        .user-system {
+            color: #666;
+            font-style: italic;
+        }
+
+        .message-content {
+            display: inline;
+        }
+
+        /* Rich text styling for messages */
+        .message-content ul, .message-content ol {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding-left: 25px;
+        }
+
+        .message-content li {
+            margin-bottom: 3px;
+        }
+
+        .message-content pre {
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .message-content code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .message-content p {
+            margin: 5px 0;
+        }
+
+        /* Title bar styling */
+        #title-bar {
+            background-color: #2e2e2e;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #title-bar img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        #title-bar span {
+            font-size: 50px;
+            line-height: 50px;
+        }
+
+        /* Status indicators */
+        #status-indicator-container {
+            display: flex;
+            align-items: center;
+        }
+
+        #status-indicator {
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin-right: 10px;
+        }
+
+        #status-text {
+            font-size: 25px;
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+        }
+
+        .status-connected { background-color: #28a745 !important; }
+        .status-error { background-color: #dc3545 !important; }
+        .status-loading { background-color: #ffc107 !important; }
+
+        .text-connected { color: #28a745; }
+        .text-error { color: #dc3545; }
+        .text-loading { color: #ffc107; }
+
+        /* Formatting toolbar */
+        #formatting-toolbar {
+            display: flex;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-top: 1px solid #ccc;
+        }
+
+        .format-button {
+            margin: 0 3px;
+            padding: 3px 8px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .format-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Character toggle styling */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            margin: 0 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #da9617; /* TACO color */
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #E25822; /* ENFUEGO color */
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Speech button */
+        #speech-button {
+            background-color: #2e2e2e;
+            color: white;
+            padding: 5px 10px;
+            margin-left: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #speech-button.recording {
+            background-color: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        #speech-button svg {
+            height: 18px;
+            width: 18px;
+            fill: white;
+            stroke: white;
+            stroke-width: 2;
+        }
+        
+        /* Code block copy button */
+        .copy-btn {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            z-index: 2;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            background: #fff;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .copy-btn:hover {
+            opacity: 1;
+        }
+        
+        /* Page background color will change based on character */
+        body.taco-mode {
+            background-color: #da9617;
+        }
+        
+        body.enfuego-mode {
+            background-color: #E25822;
+        }
+        
+        #model-indicator {
+            font-weight: normal !important;
+        }
+
+        /* Modal styling */
+        #info-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        #info-modal .modal-content {
+            background: #fff;
+            color: #222;
+            max-width: 400px;
+            margin: 10vh auto;
+            padding: 30px 20px 20px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 16px #0006;
+            position: relative;
+        }
+
+        #info-modal h2 {
+            margin-top: 0;
+        }
+
+        #info-modal p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        #info-modal button {
+            margin-top: 10px;
+            padding: 6px 18px;
+            background: #da9617;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+</head>
+<body class="taco-mode">
+
+<h1 style="margin-bottom: 0; padding-left: 30px;">Tehlon.com</h1>
+<p style="font-size: 15px; margin-top: 0; padding-left: 30px;">
+    <em>This is a silly website just for fun</em>
+</p>
+
+<div id="container">
+    <div class="link-box" id="chat-box">
+        <div id="title-bar">
+            <div>
+                <img id="character-icon" src="TACOICON.png" alt="Character Icon">
+                <span id="character-name">TACO</span> <span id="model-indicator" style="font-size:14px; color:#ffffff; font-style:italic; margin-left:8px;">(running...)</span>
+            </div>
+            <div id="status-indicator-container">
+                <div id="status-indicator"></div>
+                <div id="status-text" class="text-error">MISSING</div>
+            </div>
+        </div>
+        <div id="chat-window">
+            <div class="chat-message">
+                <span class="user-name user-taco">TACO:</span>
+                <div class="message-content">Hello! I'm TACO. What's up? </div>
+            </div>
+        </div>
+        <div id="formatting-toolbar">
+            <div style="flex:1"></div>
+            <!-- Character radio buttons -->
+            <div class="toggle-container" style="margin-left:0;">
+                <label class="toggle-label" style="margin-right:8px;">
+                    <input type="radio" name="character-radio" id="character-taco" value="taco" checked>
+                    TACO
+                </label>
+                <label class="toggle-label" style="margin-right:8px;">
+                    <input type="radio" name="character-radio" id="character-enfuego" value="enfuego">
+                    ENFUEGO
+                </label>
+            </div>
+            <label style="margin-left: 10px; font-size: 14px; font-family: Arial;">
+                <input type="checkbox" id="voice-toggle" /> Voice
+            </label>
+            <label style="margin-left: 10px; font-size: 14px; font-family: Arial;">
+                <input type="checkbox" id="bot2bot-toggle" /> Bot vs Bot
+            </label>
+        </div>
+        <form id="chat-form">
+            <textarea id="user-input" placeholder="Type your message..." autocomplete="off"></textarea>
+            <button type="button" id="speech-button" title="Voice Input">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path>
+                </svg>
+            </button>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
+
+<!-- Info Modal HTML -->
+<div id="info-modal">
+  <div class="modal-content">
+    <h2>Notice</h2>
+    <p>
+      This chat demo only works when run locally with the required backend (Ollama and Flask server).<br>
+      <b>Online, the bots will not respond.</b>
+    </p>
+    <p style="font-size:13px; color:#666;">
+      For full functionality, download the code and follow the instructions to run locally.
+    </p>
+    <button onclick="document.getElementById('info-modal').style.display='none';">OK</button>
+  </div>
+</div>
+
+<script>
+    // DOM Elements
+    const chatForm = document.getElementById('chat-form');
+    const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('user-input');
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    const formatButtons = document.querySelectorAll('.format-button');
+    const voiceToggle = document.getElementById('voice-toggle');
+    const speechButton = document.getElementById('speech-button');
+    const characterToggle = document.getElementById('character-toggle');
+    const characterIcon = document.getElementById('character-icon');
+    const characterName = document.getElementById('character-name');
+    
+    // Character Variables
+    let currentCharacter = "taco"; // Default character
+    
+    // Character Configuration
+    const characters = {
+        taco: {
+            name: "TACO",
+            icon: "TACOICON.png",
+            className: "user-taco",
+            bgClass: "taco-mode",
+            color: "#da9617"
+        },
+        enfuego: {
+            name: "ENFUEGO",
+            icon: "ENFUEGOICON.png",
+            className: "user-enfuego",
+            bgClass: "enfuego-mode",
+            color: "#cc0000"
+        }
+    };
+
+    // Speech Recognition Setup
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+    let isRecording = false;
+    
+    // Initialize Speech Recognition if supported
+    function initializeSpeechRecognition() {
+        if (!SpeechRecognition) {
+            speechButton.style.display = 'none';
+            console.warn('Speech recognition not supported in this browser');
+            return false;
+        }
+        
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        
+        setupSpeechRecognitionEvents();
+        return true;
+    }
+    
+    // Set up speech recognition event handlers
+    function setupSpeechRecognitionEvents() {
+        recognition.onresult = handleSpeechResult;
+        recognition.onstart = handleSpeechStart;
+        recognition.onend = handleSpeechEnd;
+        recognition.onerror = handleSpeechError;
+        
+        // Add click event to speech button
+        speechButton.addEventListener('click', toggleSpeechRecognition);
+    }
+    
+    // Handle speech recognition results
+    function handleSpeechResult(event) {
+        const resultIndex = event.resultIndex;
+        const transcript = event.results[resultIndex][0].transcript;
+        const isFinal = event.results[resultIndex].isFinal;
+        
+        if (isFinal) {
+            insertTranscriptAtCursor(transcript);
+        }
+    }
+    
+    // Insert transcript text at cursor position
+    function insertTranscriptAtCursor(transcript) {
+        const cursorPosition = userInput.selectionStart;
+        const currentText = userInput.value;
+        userInput.value = currentText.substring(0, cursorPosition) + 
+                         transcript + ' ' + 
+                         currentText.substring(cursorPosition);
+        
+        // Move cursor to end of inserted text
+        userInput.selectionStart = cursorPosition + transcript.length + 1;
+        userInput.selectionEnd = cursorPosition + transcript.length + 1;
+        userInput.focus();
+    }
+    
+    // Handle speech recognition start
+    function handleSpeechStart() {
+        isRecording = true;
+        speechButton.classList.add('recording');
+        speechButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>';
+        speechButton.title = "Stop Listening";
+        
+        appendMessage('SYSTEM', '<i>Voice recording started. Speak now...</i>', 'user-system');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    
+    // Handle speech recognition end
+    function handleSpeechEnd() {
+        if (isRecording) {
+            // Restart recognition to keep it continuous
+            try {
+                recognition.start();
+                return;
+            } catch (e) {
+                console.log('Could not restart recognition: ', e);
+            }
+        }
+        
+        // Reset recording state
+        resetSpeechButton();
+        appendMessage('SYSTEM', '<i>Voice recording stopped</i>', 'user-system');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    
+    // Handle speech recognition errors
+    function handleSpeechError(event) {
+        console.error('Speech recognition error:', event.error);
+        resetSpeechButton();
+        
+        appendMessage('SYSTEM', '<i>Voice recognition error: ' + event.error + '</i>', 'user-system');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+    
+    // Reset speech button to normal state
+    function resetSpeechButton() {
+        isRecording = false;
+        speechButton.classList.remove('recording');
+        speechButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg>';
+        speechButton.title = "Voice Input";
+    }
+    
+    // Toggle speech recognition on/off
+    function toggleSpeechRecognition() {
+        if (isRecording) {
+            isRecording = false;
+            recognition.stop();
+        } else {
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Error starting speech recognition:', e);
+                // If error occurs when starting, try recreating the recognition object
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                setupSpeechRecognitionEvents();
+                recognition.start();
+            }
+        }
+    }
+    
+    // Text Formatting Functions
+    function applyFormat(format) {
+        const selStart = userInput.selectionStart;
+        const selEnd = userInput.selectionEnd;
+        const selectedText = userInput.value.substring(selStart, selEnd);
+        let formattedText = '';
+        
+        switch (format) {
+            case 'bold':
+                formattedText = `<b>${selectedText}</b>`;
+                break;
+            case 'italic':
+                formattedText = `<i>${selectedText}</i>`;
+                break;
+            case 'underline':
+                formattedText = `<u>${selectedText}</u>`;
+                break;
+            case 'unordered-list':
+                formattedText = `\n<ul>\n<li>${selectedText}</li>\n</ul>\n`;
+                break;
+        }
+        
+        userInput.value = userInput.value.substring(0, selStart) + formattedText + userInput.value.substring(selEnd);
+        userInput.focus();
+        userInput.selectionStart = selStart + formattedText.length;
+        userInput.selectionEnd = selStart + formattedText.length;
+    }
+    
+    // Message Rendering Functions
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function(m) {
+            switch (m) {
+                case '&': return '&amp;';
+                case '<': return '&lt;';
+                case '>': return '&gt;';
+                case '"': return '&quot;';
+                case "'": return '&#39;';
+            }
+        });
+    }
+    
+    function escapeBackticks(str) {
+        return str.replace(/\\/g, '\\\\').replace(/`/g, '\\`');
+    }
+    
+    function renderMessageWithCodeBlocks(text) {
+        // Regex to match ```lang\ncode\n```
+        const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+        let lastIndex = 0;
+        let result = '';
+        let match;
+
+        while ((match = codeBlockRegex.exec(text)) !== null) {
+            // Add text before code block
+            result += text.slice(lastIndex, match.index);
+
+            const lang = match[1] ? match[1].toLowerCase() : '';
+            const code = escapeHtml(match[2]);
+            const langClass = lang ? `language-${lang}` : '';
+            result += `<pre><button class="copy-btn" data-code="${escapeBackticks(match[2])}" title="Copy code">Copy</button><code class="${langClass}">${code}</code></pre>`;
+
+            lastIndex = codeBlockRegex.lastIndex;
+        }
+        // Add remaining text after last code block
+        result += text.slice(lastIndex);
+
+        return result;
+    }
+    
+    function appendMessage(username, text, className) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chat-message');
+        
+        // Create username span
+        const usernameSpan = document.createElement('span');
+        usernameSpan.classList.add('user-name', className);
+        usernameSpan.textContent = username + ':';
+        messageDiv.appendChild(usernameSpan);
+        
+        // Create message content div
+        const contentDiv = document.createElement('div');
+        contentDiv.classList.add('message-content');
+        
+        // Handle message content based on user and content type
+        if (username === 'TACO' || username === 'ENFUEGO') {
+            contentDiv.innerHTML = renderMessageWithCodeBlocks(text);
+        } else if (/<[a-z][\s\S]*>/i.test(text)) {
+            contentDiv.innerHTML = text;
+        } else {
+            contentDiv.textContent = text;
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // Highlight code blocks if present
+        if (username === 'TACO' || username === 'ENFUEGO') {
+            contentDiv.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+    }
+    
+    // Text-to-Speech Function
+    function speakText(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Adjust voice settings based on character
+        if (currentCharacter === "enfuego") {
+            utterance.rate = 1.2;  // Slightly faster for ENFUEGO
+            utterance.pitch = 1.3; // Higher pitch for ENFUEGO
+        } else {
+            utterance.rate = 1;
+            utterance.pitch = 1;
+        }
+        
+        utterance.volume = 1;
+        const voices = window.speechSynthesis.getVoices();
+        utterance.voice = voices.find(voice => voice.name.includes("Google")) || voices[0];
+        window.speechSynthesis.speak(utterance);
+    }
+    
+    // Character Toggle Function (now for radio buttons)
+    function setCharacter(character) {
+        currentCharacter = character;
+        updateCharacterUI();
+        const message = `<i>Switched to ${characters[currentCharacter].name} character</i>`;
+        appendMessage('SYSTEM', message, 'user-system');
+        const greeting = currentCharacter === "taco" ?
+            "Hello! I'm TACO. What's up?" :
+            "¡Hola! I'm ENFUEGO. Let's bring the heat! 🔥";
+        appendMessage(characters[currentCharacter].name, greeting, characters[currentCharacter].className);
+    }
+    
+    // Update UI based on selected character
+    function updateCharacterUI() {
+        const character = characters[currentCharacter];
+        characterIcon.src = character.icon;
+        characterIcon.alt = character.name + " Icon";
+        characterName.textContent = character.name;
+        fetchModelNameForCharacter(currentCharacter);
+        document.body.className = character.bgClass;
+    }
+    
+    // API and Network Functions
+    function checkOllamaConnection() {
+        fetch("http://localhost:11434/api/tags")
+            .then(response => {
+                updateConnectionStatus(response.ok);
+            })
+            .catch(error => {
+                updateConnectionStatus(false);
+                console.error("Ollama connection error:", error);
+            });
+    }
+    
+    function updateConnectionStatus(isConnected) {
+        statusIndicator.classList.remove('status-connected', 'status-error', 'status-loading');
+        statusText.className = '';
+        
+        if (isConnected) {
+            statusIndicator.classList.add('status-connected');
+            statusText.textContent = "LISTENING";
+            statusText.className = "text-connected";
+        } else {
+            statusIndicator.classList.add('status-error');
+            statusText.textContent = "MISSING";
+            statusText.className = "text-error";
+        }
+    }
+    
+    function setThinkingStatus() {
+        statusIndicator.classList.remove('status-connected', 'status-error');
+        statusIndicator.classList.add('status-loading');
+        statusText.textContent = "THINKING";
+        statusText.className = "text-loading";
+    }
+    
+    // Fetch and display current model name for the selected character
+    function fetchModelNameForCharacter(character) {
+        fetch(`http://localhost:5005/model?personality=${character}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('model-indicator').textContent = `(running on ${data.model})`;
+            })
+            .catch(() => {
+                document.getElementById('model-indicator').textContent = '(running on unknown)';
+            });
+    }
+    
+    let bot2botActive = false;
+    let bot2botChatHistory = [];
+    let bot2botConversation = [];
+
+    function sendMessage(message) {
+        if (!message.trim()) return;
+        const bot2bot = document.getElementById('bot2bot-toggle').checked;
+        if (bot2bot) {
+            bot2botActive = true;
+            bot2botChatHistory = [];
+            bot2botConversation = [];
+            // Start the bot2bot loop
+            startBot2Bot(message);
+        } else {
+            bot2botActive = false;
+            appendMessage('USER', message, 'user-you');
+            userInput.value = '';
+            setThinkingStatus();
+            fetch("http://localhost:5005/taco", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    message, 
+                    format: "html",
+                    personality: currentCharacter
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response error");
+                }
+                return response.json();
+            })
+            .then data => {
+                appendMessage(characters[currentCharacter].name, data.response, characters[currentCharacter].className);
+                if (voiceToggle.checked) {
+                    speakText(data.response);
+                }
+                if (data.model_used) {
+                    document.getElementById('model-indicator').textContent = `(running on ${data.model_used})`;
+                }
+                updateConnectionStatus(true);
+            })
+            .catch(error => {
+                console.error("Error fetching from Flask server:", error);
+                const errorMessage = "Sorry, I couldn't connect to my brain. Is Ollama running?";
+                appendMessage(characters[currentCharacter].name, errorMessage, characters[currentCharacter].className);
+                if (voiceToggle.checked) {
+                    speakText(errorMessage);
+                }
+                document.getElementById('model-indicator').textContent = '(running on unknown)';
+                updateConnectionStatus(false);
+            });
+        }
+    }
+
+    function startBot2Bot(message) {
+        // Initial user message is only sent once
+        chatWindow.innerHTML = '';
+        appendMessage('USER', message, 'user-you');
+        userInput.value = '';
+        setThinkingStatus();
+        bot2botChatHistory = [];
+        bot2botConversation = [];
+        bot2botStep(message);
+    }
+
+    function bot2botStep(message) {
+        if (!bot2botActive) return;
+        fetch("http://localhost:5005/bot2bot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                message,
+                format: "html",
+                chat_history: bot2botChatHistory,
+                conversation: bot2botConversation
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            bot2botChatHistory = data.chat_history;
+            bot2botConversation = data.conversation;
+            // Render the conversation
+            chatWindow.innerHTML = '';
+            appendMessage('USER', message, 'user-you');
+            data.conversation.forEach(turn => {
+                const className = turn.speaker === 'TACO' ? 'user-taco' : 'user-enfuego';
+                appendMessage(turn.speaker, turn.message, className);
+                document.getElementById('model-indicator').textContent = `(running on ${turn.model})`;
+            });
+            updateConnectionStatus(true);
+            // Continue if box is still checked
+            if (bot2botActive && document.getElementById('bot2bot-toggle').checked) {
+                setTimeout(() => bot2botStep(message), 1200); // 1.2s delay between turns
+            }
+        })
+        .catch(error => {
+            console.error("Error in bot2bot:", error);
+            appendMessage('SYSTEM', 'Bot2Bot error: ' + error, 'user-system');
+            document.getElementById('model-indicator').textContent = '(running on unknown)';
+            updateConnectionStatus(false);
+        });
+    }
+
+    document.getElementById('bot2bot-toggle').addEventListener('change', function() {
+        if (!this.checked) {
+            bot2botActive = false;
+        }
+    });
+    
+    // Event Listeners
+    function setupEventListeners() {
+        // Format buttons
+        formatButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const format = button.getAttribute('data-format');
+                applyFormat(format);
+            });
+        });
+        
+        // Handle Shift+Enter for new line vs Enter for submit
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+        
+        // Form submit
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            sendMessage(userInput.value);
+        });
+        
+        // Character radio buttons
+        document.getElementById('character-taco').addEventListener('change', function() {
+            if (this.checked) setCharacter('taco');
+        });
+        document.getElementById('character-enfuego').addEventListener('change', function() {
+            if (this.checked) setCharacter('enfuego');
+        });
+        
+        // Copy button click event
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('copy-btn')) {
+                const code = e.target.getAttribute('data-code');
+                navigator.clipboard.writeText(code.replace(/\\`/g, '`').replace(/\\\\/g, '\\'));
+                e.target.textContent = 'Copied!';
+                setTimeout(() => { e.target.textContent = 'Copy'; }, 1200);
+            }
+        });
+    }
+    
+    // Initialization
+    function initialize() {
+        initializeSpeechRecognition();
+        setupEventListeners();
+        checkOllamaConnection();
+        fetchModelNameForCharacter(currentCharacter);
+    }
+    
+    // Start the application
+    initialize();
+
+    // Show the modal on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('info-modal').style.display = 'block';
+    });
+</script>
+
+</body>
+</html>
